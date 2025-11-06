@@ -1,0 +1,23 @@
+{
+  "name": "npm-sha256-hash-fetcher",
+  "version": "1.0.0",
+  "description": "A JavaScript library to fetch the latest version and SHA-256 file hashes for npm packages using the jsDelivr API.",
+  "main": "index.js",
+  "type": "module",
+  "files": [
+    "index.js"
+  ],
+  "scripts": {
+    "start": "npx http-server"
+  },
+  "keywords": [
+    "npm",
+    "jsdelivr",
+    "hash",
+    "sha256",
+    "file",
+    "api"
+  ],
+  "author": "Thomas Steiner (tomac@google.com)",
+  "license": "Apache-2.0"
+}
