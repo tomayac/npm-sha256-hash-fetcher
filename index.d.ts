@@ -29,6 +29,7 @@ export interface SingleFileResult {
   latestVersion: string;
   base64Hash: string;
   hexHash: string;
+  size: number;
 }
 
 export interface AllFilesResult {

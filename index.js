@@ -168,16 +168,22 @@ export class NPMSHA256HashFetcher {
     }
 
     // Case 2: A specific file was requested
-    const base64Hash = this.findFileHash(allFiles, filePath);
-    const hexHash = this.base64ToHex(base64Hash);
+    const fileEntry = allFiles.find(
+      (f) => f.name.toLowerCase() === filePath.toLowerCase()
+    );
+    if (!fileEntry) throw new Error(`File not found: ${filePath}`);
+    if (!fileEntry.hash)
+      throw new Error(`Hash not found for file: ${filePath}`);
+    const hexHash = this.base64ToHex(fileEntry.hash);
 
     return {
       input: resourcePath,
       packageName,
       filePath,
       latestVersion: version,
-      base64Hash,
+      base64Hash: fileEntry.hash,
       hexHash,
+      size: fileEntry.size,
     };
   }
 
