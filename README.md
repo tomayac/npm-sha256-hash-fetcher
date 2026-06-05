@@ -7,6 +7,7 @@ and SHA-256 file hashes for npm packages using the jsDelivr API.
 
 - Fetches the latest resolved version of any npm package.
 - Gets the SHA-256 hash for a specific file within a package.
+- Supports pinning to a specific version (`package@x.y.z/path/to/file`).
 - Returns hashes for all files if only a package name is provided.
 - Handles single string or an array of resource paths as input.
 - Converts the base64 hash from jsDelivr to a standard hex SHA-256 string.
@@ -110,6 +111,43 @@ try {
 }
 ```
 
+### Example 4: Pin to a specific version
+
+Append `@version` to the package name to skip the latest-version lookup and use
+an exact version instead:
+
+```js
+try {
+  // Pins to react@18.2.0 instead of resolving the latest version
+  const resource = 'react@18.2.0/cjs/react.production.js';
+  const results = await fetcher.getHexHashForResource(resource);
+
+  if (results[0].status === 'fulfilled') {
+    console.log(results[0].value);
+  }
+} catch (e) {
+  console.error(e);
+}
+
+/* Expected Output (for Example 4):
+{
+  "input": "react@18.2.0/cjs/react.production.js",
+  "packageName": "react",
+  "filePath": "/cjs/react.production.js",
+  "latestVersion": "18.2.0",
+  "base64Hash": "...",
+  "hexHash": "..."
+}
+*/
+```
+
+Scoped packages work the same way — insert the version between the package name
+and the file path:
+
+```js
+// '@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm'
+```
+
 ## API
 
 `getHexHashForResource(resources)`
@@ -118,9 +156,13 @@ This is the main method for the library.
 
 `resources: string | string[]`
 
-- A single resource string (e.g., `"react/cjs/react.production.js"`)
-  - OR a single package name (e.g., `"react"`)
-  - OR an array of resource strings (e.g., ["react", "vue/dist/vue.js"])
+- A single resource string — the format is `[scope/]package[@version][/path]`:
+  - `"react/cjs/react.production.js"` — latest version, specific file
+  - `"react@18.2.0/cjs/react.production.js"` — pinned version, specific file
+  - `"@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm"` — scoped + pinned
+  - `"react"` — latest version, all files
+  - OR an array of any of the above (e.g.,
+    `["react@18.2.0", "vue/dist/vue.js"]`)
 - Returns: `Promise<Array<object>>`
   - A `Promise` that resolves to an array of `Promise.allSettled` result
     objects. Each object will have a status(`"fulfilled"` or `"rejected"`).

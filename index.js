@@ -23,25 +23,33 @@ export class NPMSHA256HashFetcher {
 
     const parts = inputPath.trim().split('/');
     let packageName;
-    let filePath = null; // Default to null (all files)
+    let version = null;
+    let filePath = null;
 
     if (parts[0].startsWith('@')) {
-      // Scoped package
-      if (parts.length < 2) return null; // Invalid, e.g., "@scope"
-      packageName = `${parts[0]}/${parts[1]}`;
+      // Scoped package: @scope/name[@version][/path]
+      if (parts.length < 2) return null;
+      const [name, ver = null] = parts[1].split('@');
+      packageName = `${parts[0]}/${name}`;
+      version = ver;
       if (parts.length > 2) {
         filePath = `/${parts.slice(2).join('/')}`;
       }
     } else {
-      // Unscoped package
-      if (parts.length < 1) return null; // Empty string
-      packageName = parts[0];
+      // Unscoped package: name[@version][/path]
+      const atIndex = parts[0].indexOf('@');
+      if (atIndex > 0) {
+        packageName = parts[0].slice(0, atIndex);
+        version = parts[0].slice(atIndex + 1);
+      } else {
+        packageName = parts[0];
+      }
       if (parts.length > 1) {
         filePath = `/${parts.slice(1).join('/')}`;
       }
     }
 
-    return { packageName, filePath };
+    return { packageName, version, filePath };
   }
 
   /**
@@ -137,9 +145,9 @@ export class NPMSHA256HashFetcher {
       );
     }
 
-    const { packageName, filePath } = parsed;
+    const { packageName, version: pinnedVersion, filePath } = parsed;
 
-    const version = await this.getLatestVersion(packageName);
+    const version = pinnedVersion ?? (await this.getLatestVersion(packageName));
     const allFiles = await this.getPackageFiles(packageName, version);
 
     // Case 1: Only package name was provided, return all files
